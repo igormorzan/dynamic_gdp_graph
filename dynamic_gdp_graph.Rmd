@@ -1,0 +1,46 @@
+---
+title: "Dynamic GDP and Life Expectancy Graph"
+author: "Igor Morzan"
+date: "3/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(gapminder)
+library(gganimate)
+library(gifski)
+library(png)
+```
+
+```{r echo=FALSE, cache=TRUE}
+dynamic <- gapminder %>%
+  mutate(continent = fct_collapse(continent, Asia = c("Asia", "Oceania"))) %>%
+  # groups by continent
+  
+  group_by(continent) %>%
+  filter(continent != "Europe") %>%
+  # establishes the x and y axis'
+  
+  ggplot(aes(x = gdpPercap, y = lifeExp, color = country, size = pop)) + 
+  geom_point(alpha = 0.5, show.legend = FALSE) + 
+  scale_color_manual(values = country_colors) +
+  # sets the frame form GDP values to include #1,000 to $10,000 on the axis
+  
+  scale_x_log10(breaks = c(1000, 10000), 
+                labels = c("$1,000", "$10,000")) +
+  facet_grid(~continent) +
+  # creates dynamic title
+  
+  labs(title = "The World Gets Better Every Year: {frame_time}",
+       caption = "Source: Gapminder Package") +
+  ylab("Life Expectancy") +
+  xlab("GDP per Capita") +
+  # adds the animation by year
+  
+  transition_time(year)
+
+dynamic
+```
